@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import { LibStaking } from "../libraries/LibStaking.sol";
-import { IERC20, IRewardToken, IReceiptToken } from "../interfaces/ITokens.sol";
+import {LibStaking} from "../libraries/LibStaking.sol";
+import {IERC20, IRewardToken, IReceiptToken} from "../interfaces/ITokens.sol";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // StakingFacet
@@ -11,7 +11,6 @@ import { IERC20, IRewardToken, IReceiptToken } from "../interfaces/ITokens.sol";
 // ─────────────────────────────────────────────────────────────────────────────
 
 contract StakingFacet {
-
     event Staked(address indexed user, uint256 indexed poolId, uint256 stakeId, uint256 amount);
     event Withdrawn(address indexed user, uint256 indexed poolId, uint256 stakeId, uint256 amount);
     event RewardsClaimed(address indexed user, uint256 indexed poolId, uint256 stakeId, uint256 amount);
@@ -26,13 +25,13 @@ contract StakingFacet {
         uint256 stakeId = ss.stakeCount[poolId][msg.sender];
 
         ss.userStakes[poolId][msg.sender][stakeId] = LibStaking.Stake({
-            amount:          amount,
-            startTime:       block.timestamp,
-            unlockTime:      block.timestamp + ss.poolsLockDuration[poolId],
-            rewardRate:      ss.poolsRewardRate[poolId],
-            lastUpdateTime:  block.timestamp,
-            rewardAccrued:   0,
-            active:          true
+            amount: amount,
+            startTime: block.timestamp,
+            unlockTime: block.timestamp + ss.poolsLockDuration[poolId],
+            rewardRate: ss.poolsRewardRate[poolId],
+            lastUpdateTime: block.timestamp,
+            rewardAccrued: 0,
+            active: true
         });
 
         bool success = IERC20(ss.stakeToken).transferFrom(msg.sender, address(this), amount);
@@ -80,8 +79,8 @@ contract StakingFacet {
         uint256 rewards = s.rewardAccrued + LibStaking.calculateReward(poolId, msg.sender, stakeId);
         require(rewards > 0, "No rewards to claim");
 
-        s.rewardAccrued    = 0;
-        s.lastUpdateTime   = block.timestamp;
+        s.rewardAccrued = 0;
+        s.lastUpdateTime = block.timestamp;
 
         bool success = IRewardToken(ss.rewardToken).mint(msg.sender, rewards);
         require(success, "Reward mint failed");
@@ -96,11 +95,11 @@ contract StakingFacet {
         require(s.active, "Stake not active");
         require(s.amount > 0, "Nothing staked");
 
-        uint256 amount            = s.amount;
-        uint256 penalty           = amount * 10 / 100;
+        uint256 amount = s.amount;
+        uint256 penalty = amount * 10 / 100;
         uint256 amountAfterPenalty = amount - penalty;
 
-        s.active        = false;
+        s.active = false;
         s.rewardAccrued = 0;
         ss.poolTotalStaked[poolId] -= amount;
 

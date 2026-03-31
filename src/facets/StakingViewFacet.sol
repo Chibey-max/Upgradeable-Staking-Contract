@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import { LibStaking } from "../libraries/LibStaking.sol";
+import {LibStaking} from "../libraries/LibStaking.sol";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // StakingViewFacet  (V1)
@@ -10,7 +10,6 @@ import { LibStaking } from "../libraries/LibStaking.sol";
 // ─────────────────────────────────────────────────────────────────────────────
 
 contract StakingViewFacet {
-
     function getPoolTotalStaked(uint256 poolId) external view returns (uint256) {
         return LibStaking.stakingStorage().poolTotalStaked[poolId];
     }

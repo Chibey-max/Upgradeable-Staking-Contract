@@ -3,21 +3,21 @@ pragma solidity ^0.8.28;
 
 import "forge-std/Test.sol";
 
-import { Diamond }            from "../src/Diamond.sol";
-import { DiamondCutFacet }    from "../src/facets/DiamondCutFacet.sol";
-import { DiamondLoupeFacet }  from "../src/facets/DiamondLoupeFacet.sol";
-import { DiamondInit }        from "../src/DiamondInit.sol";
+import {Diamond} from "../src/Diamond.sol";
+import {DiamondCutFacet} from "../src/facets/DiamondCutFacet.sol";
+import {DiamondLoupeFacet} from "../src/facets/DiamondLoupeFacet.sol";
+import {DiamondInit} from "../src/DiamondInit.sol";
 
-import { StakingFacet }       from "../src/facets/StakingFacet.sol";
-import { StakingViewFacet }   from "../src/facets/StakingViewFacet.sol";
-import { StakingViewFacetV2 } from "../src/facets/StakingViewFacetV2.sol";
-import { StakingAdminFacet }  from "../src/facets/StakingAdminFacet.sol";
+import {StakingFacet} from "../src/facets/StakingFacet.sol";
+import {StakingViewFacet} from "../src/facets/StakingViewFacet.sol";
+import {StakingViewFacetV2} from "../src/facets/StakingViewFacetV2.sol";
+import {StakingAdminFacet} from "../src/facets/StakingAdminFacet.sol";
 
-import { MockERC20 }          from "../src/tokens/MockERC20.sol";
+import {MockERC20} from "../src/tokens/MockERC20.sol";
 
-import { IDiamondCut }        from "../src/interfaces/IDiamondCut.sol";
-import { IDiamondLoupe }      from "../src/interfaces/IDiamondLoupe.sol";
-import { LibStaking }         from "../src/libraries/LibStaking.sol";
+import {IDiamondCut} from "../src/interfaces/IDiamondCut.sol";
+import {IDiamondLoupe} from "../src/interfaces/IDiamondLoupe.sol";
+import {LibStaking} from "../src/libraries/LibStaking.sol";
 
 // ── Thin interfaces for calling the Diamond proxy ──────────────────────────
 
@@ -49,33 +49,32 @@ interface IStakingAdminFacet {
 // ─────────────────────────────────────────────────────────────────────────────
 
 contract DeployDiamondTest is Test {
-
     // ── Deployed contracts ─────────────────────────────────────────────────
-    Diamond            diamond;
-    DiamondCutFacet    cutFacet;
-    DiamondLoupeFacet  loupeFacet;
-    DiamondInit        diamondInit;
+    Diamond diamond;
+    DiamondCutFacet cutFacet;
+    DiamondLoupeFacet loupeFacet;
+    DiamondInit diamondInit;
 
-    StakingFacet       stakingFacet;
-    StakingViewFacet   viewFacet;
+    StakingFacet stakingFacet;
+    StakingViewFacet viewFacet;
     StakingViewFacetV2 viewFacetV2;
-    StakingAdminFacet  adminFacet;
+    StakingAdminFacet adminFacet;
 
     MockERC20 stakeToken;
     MockERC20 rewardToken;
     MockERC20 receiptToken;
 
     // ── Actors ─────────────────────────────────────────────────────────────
-    address owner  = address(this);
+    address owner = address(this);
     address user1;
     address user2;
 
     // ── Constants ──────────────────────────────────────────────────────────
     uint256 constant INITIAL_SUPPLY = 1_000_000e18;
-    uint256 constant USER_BALANCE   = 10_000e18;
-    uint256 constant STAKE_AMOUNT   = 100e18;
-    uint256 constant POOL_0         = 0; // 300-second lock
-    uint256 constant POOL_0_LOCK    = 300;
+    uint256 constant USER_BALANCE = 10_000e18;
+    uint256 constant STAKE_AMOUNT = 100e18;
+    uint256 constant POOL_0 = 0; // 300-second lock
+    uint256 constant POOL_0_LOCK = 300;
 
     // ─────────────────────────────────────────────────────────────────────
     // setUp
@@ -86,12 +85,12 @@ contract DeployDiamondTest is Test {
         user2 = makeAddr("user2");
 
         // ── 1. Tokens ──────────────────────────────────────────────────────
-        stakeToken   = new MockERC20("Stake Token",   "STK", 18, INITIAL_SUPPLY);
-        rewardToken  = new MockERC20("Reward Token",  "RWD", 18, 0);
+        stakeToken = new MockERC20("Stake Token", "STK", 18, INITIAL_SUPPLY);
+        rewardToken = new MockERC20("Reward Token", "RWD", 18, 0);
         receiptToken = new MockERC20("Receipt Token", "RCT", 18, 0);
 
         // ── 2. Diamond core ────────────────────────────────────────────────
-        cutFacet   = new DiamondCutFacet();
+        cutFacet = new DiamondCutFacet();
         loupeFacet = new DiamondLoupeFacet();
         diamondInit = new DiamondInit();
 
@@ -100,9 +99,9 @@ contract DeployDiamondTest is Test {
 
         // ── 3. Staking facets ──────────────────────────────────────────────
         stakingFacet = new StakingFacet();
-        viewFacet    = new StakingViewFacet();
-        viewFacetV2  = new StakingViewFacetV2();
-        adminFacet   = new StakingAdminFacet();
+        viewFacet = new StakingViewFacet();
+        viewFacetV2 = new StakingViewFacetV2();
+        adminFacet = new StakingAdminFacet();
 
         // ── 4. Grant Diamond minter rights on reward + receipt tokens ───────
         rewardToken.addMinter(address(diamond));
@@ -146,13 +145,13 @@ contract DeployDiamondTest is Test {
     }
 
     // ── Build a single-item FacetCut array ─────────────────────────────────
-    function _cut(
-        address facet,
-        IDiamondCut.FacetCutAction action,
-        bytes4[] memory selectors
-    ) internal pure returns (IDiamondCut.FacetCut[] memory cuts) {
+    function _cut(address facet, IDiamondCut.FacetCutAction action, bytes4[] memory selectors)
+        internal
+        pure
+        returns (IDiamondCut.FacetCut[] memory cuts)
+    {
         cuts = new IDiamondCut.FacetCut[](1);
-        cuts[0] = IDiamondCut.FacetCut({ facetAddress: facet, action: action, functionSelectors: selectors });
+        cuts[0] = IDiamondCut.FacetCut({facetAddress: facet, action: action, functionSelectors: selectors});
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -162,16 +161,33 @@ contract DeployDiamondTest is Test {
 
     function _fullInit() internal {
         IDiamondCut.FacetCut[] memory cuts = new IDiamondCut.FacetCut[](4);
-        cuts[0] = IDiamondCut.FacetCut({ facetAddress: address(loupeFacet),   action: IDiamondCut.FacetCutAction.Add, functionSelectors: _loupeSelectors()    });
-        cuts[1] = IDiamondCut.FacetCut({ facetAddress: address(stakingFacet), action: IDiamondCut.FacetCutAction.Add, functionSelectors: _stakingSelectors() });
-        cuts[2] = IDiamondCut.FacetCut({ facetAddress: address(viewFacet),    action: IDiamondCut.FacetCutAction.Add, functionSelectors: _viewSelectors()    });
-        cuts[3] = IDiamondCut.FacetCut({ facetAddress: address(adminFacet),   action: IDiamondCut.FacetCutAction.Add, functionSelectors: _adminSelectors()   });
+        cuts[0] = IDiamondCut.FacetCut({
+            facetAddress: address(loupeFacet),
+            action: IDiamondCut.FacetCutAction.Add,
+            functionSelectors: _loupeSelectors()
+        });
+        cuts[1] = IDiamondCut.FacetCut({
+            facetAddress: address(stakingFacet),
+            action: IDiamondCut.FacetCutAction.Add,
+            functionSelectors: _stakingSelectors()
+        });
+        cuts[2] = IDiamondCut.FacetCut({
+            facetAddress: address(viewFacet),
+            action: IDiamondCut.FacetCutAction.Add,
+            functionSelectors: _viewSelectors()
+        });
+        cuts[3] = IDiamondCut.FacetCut({
+            facetAddress: address(adminFacet),
+            action: IDiamondCut.FacetCutAction.Add,
+            functionSelectors: _adminSelectors()
+        });
 
-        IDiamondCut(address(diamond)).diamondCut(
-            cuts,
-            address(diamondInit),
-            abi.encodeCall(DiamondInit.init, (address(stakeToken), address(rewardToken), address(receiptToken)))
-        );
+        IDiamondCut(address(diamond))
+            .diamondCut(
+                cuts,
+                address(diamondInit),
+                abi.encodeCall(DiamondInit.init, (address(stakeToken), address(rewardToken), address(receiptToken)))
+            );
     }
 
     // ═════════════════════════════════════════════════════════════════════
@@ -179,10 +195,8 @@ contract DeployDiamondTest is Test {
     // ═════════════════════════════════════════════════════════════════════
 
     function test_Add_LoupeFacet() public {
-        IDiamondCut(address(diamond)).diamondCut(
-            _cut(address(loupeFacet), IDiamondCut.FacetCutAction.Add, _loupeSelectors()),
-            address(0), ""
-        );
+        IDiamondCut(address(diamond))
+            .diamondCut(_cut(address(loupeFacet), IDiamondCut.FacetCutAction.Add, _loupeSelectors()), address(0), "");
 
         // CutFacet (from constructor) + LoupeFacet = 2
         address[] memory addrs = IDiamondLoupe(address(diamond)).facetAddresses();
@@ -200,9 +214,21 @@ contract DeployDiamondTest is Test {
     function test_Add_SelectorsRoutedCorrectly() public {
         _fullInit();
 
-        assertEq(IDiamondLoupe(address(diamond)).facetAddress(IStakingFacet.stake.selector),                 address(stakingFacet), "stake() wrong facet");
-        assertEq(IDiamondLoupe(address(diamond)).facetAddress(IStakingViewFacet.getPoolTotalStaked.selector), address(viewFacet),    "getPoolTotalStaked() wrong facet");
-        assertEq(IDiamondLoupe(address(diamond)).facetAddress(IStakingAdminFacet.updateRewardRate.selector),  address(adminFacet),   "updateRewardRate() wrong facet");
+        assertEq(
+            IDiamondLoupe(address(diamond)).facetAddress(IStakingFacet.stake.selector),
+            address(stakingFacet),
+            "stake() wrong facet"
+        );
+        assertEq(
+            IDiamondLoupe(address(diamond)).facetAddress(IStakingViewFacet.getPoolTotalStaked.selector),
+            address(viewFacet),
+            "getPoolTotalStaked() wrong facet"
+        );
+        assertEq(
+            IDiamondLoupe(address(diamond)).facetAddress(IStakingAdminFacet.updateRewardRate.selector),
+            address(adminFacet),
+            "updateRewardRate() wrong facet"
+        );
     }
 
     function test_Add_DiamondInitSeedsStorage() public {
@@ -212,32 +238,30 @@ contract DeployDiamondTest is Test {
     }
 
     function test_Add_RevertWhen_DuplicateSelector() public {
-        IDiamondCut(address(diamond)).diamondCut(
-            _cut(address(stakingFacet), IDiamondCut.FacetCutAction.Add, _stakingSelectors()),
-            address(0), ""
-        );
+        IDiamondCut(address(diamond))
+            .diamondCut(
+                _cut(address(stakingFacet), IDiamondCut.FacetCutAction.Add, _stakingSelectors()), address(0), ""
+            );
         vm.expectRevert();
-        IDiamondCut(address(diamond)).diamondCut(
-            _cut(address(stakingFacet), IDiamondCut.FacetCutAction.Add, _stakingSelectors()),
-            address(0), ""
-        );
+        IDiamondCut(address(diamond))
+            .diamondCut(
+                _cut(address(stakingFacet), IDiamondCut.FacetCutAction.Add, _stakingSelectors()), address(0), ""
+            );
     }
 
     function test_Add_RevertWhen_NonOwner() public {
         vm.prank(user1);
         vm.expectRevert();
-        IDiamondCut(address(diamond)).diamondCut(
-            _cut(address(stakingFacet), IDiamondCut.FacetCutAction.Add, _stakingSelectors()),
-            address(0), ""
-        );
+        IDiamondCut(address(diamond))
+            .diamondCut(
+                _cut(address(stakingFacet), IDiamondCut.FacetCutAction.Add, _stakingSelectors()), address(0), ""
+            );
     }
 
     function test_Add_RevertWhen_ZeroAddressFacet() public {
         vm.expectRevert();
-        IDiamondCut(address(diamond)).diamondCut(
-            _cut(address(0), IDiamondCut.FacetCutAction.Add, _stakingSelectors()),
-            address(0), ""
-        );
+        IDiamondCut(address(diamond))
+            .diamondCut(_cut(address(0), IDiamondCut.FacetCutAction.Add, _stakingSelectors()), address(0), "");
     }
 
     // ═════════════════════════════════════════════════════════════════════
@@ -256,10 +280,10 @@ contract DeployDiamondTest is Test {
         );
 
         // Replace with V2
-        IDiamondCut(address(diamond)).diamondCut(
-            _cut(address(viewFacetV2), IDiamondCut.FacetCutAction.Replace, _viewSelectors()),
-            address(0), ""
-        );
+        IDiamondCut(address(diamond))
+            .diamondCut(
+                _cut(address(viewFacetV2), IDiamondCut.FacetCutAction.Replace, _viewSelectors()), address(0), ""
+            );
 
         assertEq(
             IDiamondLoupe(address(diamond)).facetAddress(IStakingViewFacet.getPendingReward.selector),
@@ -277,10 +301,10 @@ contract DeployDiamondTest is Test {
         _fullInit();
         uint256 before = IDiamondLoupe(address(diamond)).facetAddresses().length;
 
-        IDiamondCut(address(diamond)).diamondCut(
-            _cut(address(viewFacetV2), IDiamondCut.FacetCutAction.Replace, _viewSelectors()),
-            address(0), ""
-        );
+        IDiamondCut(address(diamond))
+            .diamondCut(
+                _cut(address(viewFacetV2), IDiamondCut.FacetCutAction.Replace, _viewSelectors()), address(0), ""
+            );
 
         assertEq(IDiamondLoupe(address(diamond)).facetAddresses().length, before, "Replace must not change facet count");
     }
@@ -291,16 +315,14 @@ contract DeployDiamondTest is Test {
         // Attach the extra version() selector that only V2 exposes
         bytes4[] memory extraSelectors = new bytes4[](1);
         extraSelectors[0] = IStakingViewFacetV2.version.selector;
-        IDiamondCut(address(diamond)).diamondCut(
-            _cut(address(viewFacetV2), IDiamondCut.FacetCutAction.Add, extraSelectors),
-            address(0), ""
-        );
+        IDiamondCut(address(diamond))
+            .diamondCut(_cut(address(viewFacetV2), IDiamondCut.FacetCutAction.Add, extraSelectors), address(0), "");
 
         // Now replace the shared selectors
-        IDiamondCut(address(diamond)).diamondCut(
-            _cut(address(viewFacetV2), IDiamondCut.FacetCutAction.Replace, _viewSelectors()),
-            address(0), ""
-        );
+        IDiamondCut(address(diamond))
+            .diamondCut(
+                _cut(address(viewFacetV2), IDiamondCut.FacetCutAction.Replace, _viewSelectors()), address(0), ""
+            );
 
         string memory ver = IStakingViewFacetV2(address(diamond)).version();
         assertEq(ver, "StakingViewFacet-V2", "Version string mismatch");
@@ -309,18 +331,16 @@ contract DeployDiamondTest is Test {
     function test_Replace_RevertWhen_SameFacetAddress() public {
         _fullInit();
         vm.expectRevert();
-        IDiamondCut(address(diamond)).diamondCut(
-            _cut(address(viewFacet), IDiamondCut.FacetCutAction.Replace, _viewSelectors()),
-            address(0), ""
-        );
+        IDiamondCut(address(diamond))
+            .diamondCut(_cut(address(viewFacet), IDiamondCut.FacetCutAction.Replace, _viewSelectors()), address(0), "");
     }
 
     function test_Replace_RevertWhen_SelectorNeverAdded() public {
         vm.expectRevert();
-        IDiamondCut(address(diamond)).diamondCut(
-            _cut(address(viewFacetV2), IDiamondCut.FacetCutAction.Replace, _viewSelectors()),
-            address(0), ""
-        );
+        IDiamondCut(address(diamond))
+            .diamondCut(
+                _cut(address(viewFacetV2), IDiamondCut.FacetCutAction.Replace, _viewSelectors()), address(0), ""
+            );
     }
 
     // ═════════════════════════════════════════════════════════════════════
@@ -340,9 +360,7 @@ contract DeployDiamondTest is Test {
         // For Remove, facetAddress must be address(0) per EIP-2535
         IDiamondCut.FacetCut[] memory removeCut = new IDiamondCut.FacetCut[](1);
         removeCut[0] = IDiamondCut.FacetCut({
-            facetAddress:      address(0),
-            action:            IDiamondCut.FacetCutAction.Remove,
-            functionSelectors: _adminSelectors()
+            facetAddress: address(0), action: IDiamondCut.FacetCutAction.Remove, functionSelectors: _adminSelectors()
         });
         IDiamondCut(address(diamond)).diamondCut(removeCut, address(0), "");
 
@@ -358,9 +376,7 @@ contract DeployDiamondTest is Test {
 
         IDiamondCut.FacetCut[] memory removeCut = new IDiamondCut.FacetCut[](1);
         removeCut[0] = IDiamondCut.FacetCut({
-            facetAddress:      address(0),
-            action:            IDiamondCut.FacetCutAction.Remove,
-            functionSelectors: _adminSelectors()
+            facetAddress: address(0), action: IDiamondCut.FacetCutAction.Remove, functionSelectors: _adminSelectors()
         });
         IDiamondCut(address(diamond)).diamondCut(removeCut, address(0), "");
 
@@ -374,9 +390,7 @@ contract DeployDiamondTest is Test {
 
         IDiamondCut.FacetCut[] memory removeCut = new IDiamondCut.FacetCut[](1);
         removeCut[0] = IDiamondCut.FacetCut({
-            facetAddress:      address(0),
-            action:            IDiamondCut.FacetCutAction.Remove,
-            functionSelectors: _adminSelectors()
+            facetAddress: address(0), action: IDiamondCut.FacetCutAction.Remove, functionSelectors: _adminSelectors()
         });
         IDiamondCut(address(diamond)).diamondCut(removeCut, address(0), "");
 
@@ -386,9 +400,7 @@ contract DeployDiamondTest is Test {
     function test_Remove_RevertWhen_SelectorNeverAdded() public {
         IDiamondCut.FacetCut[] memory removeCut = new IDiamondCut.FacetCut[](1);
         removeCut[0] = IDiamondCut.FacetCut({
-            facetAddress:      address(0),
-            action:            IDiamondCut.FacetCutAction.Remove,
-            functionSelectors: _adminSelectors()
+            facetAddress: address(0), action: IDiamondCut.FacetCutAction.Remove, functionSelectors: _adminSelectors()
         });
         vm.expectRevert();
         IDiamondCut(address(diamond)).diamondCut(removeCut, address(0), "");
@@ -397,10 +409,8 @@ contract DeployDiamondTest is Test {
     function test_Remove_RevertWhen_FacetAddressNotZero() public {
         _fullInit();
         vm.expectRevert();
-        IDiamondCut(address(diamond)).diamondCut(
-            _cut(address(adminFacet), IDiamondCut.FacetCutAction.Remove, _adminSelectors()),
-            address(0), ""
-        );
+        IDiamondCut(address(diamond))
+            .diamondCut(_cut(address(adminFacet), IDiamondCut.FacetCutAction.Remove, _adminSelectors()), address(0), "");
     }
 
     // ═════════════════════════════════════════════════════════════════════
@@ -540,13 +550,15 @@ contract DeployDiamondTest is Test {
         vm.stopPrank();
 
         // Upgrade view facet
-        IDiamondCut(address(diamond)).diamondCut(
-            _cut(address(viewFacetV2), IDiamondCut.FacetCutAction.Replace, _viewSelectors()),
-            address(0), ""
-        );
+        IDiamondCut(address(diamond))
+            .diamondCut(
+                _cut(address(viewFacetV2), IDiamondCut.FacetCutAction.Replace, _viewSelectors()), address(0), ""
+            );
 
         // State should still be there after the upgrade
-        assertEq(IStakingViewFacetV2(address(diamond)).getPoolTotalStaked(POOL_0), STAKE_AMOUNT, "State lost after Replace");
+        assertEq(
+            IStakingViewFacetV2(address(diamond)).getPoolTotalStaked(POOL_0), STAKE_AMOUNT, "State lost after Replace"
+        );
     }
 
     function test_Integration_RemoveAdmin_ThenStakingStillWorks() public {
@@ -555,9 +567,7 @@ contract DeployDiamondTest is Test {
         // Remove admin facet
         IDiamondCut.FacetCut[] memory removeCut = new IDiamondCut.FacetCut[](1);
         removeCut[0] = IDiamondCut.FacetCut({
-            facetAddress:      address(0),
-            action:            IDiamondCut.FacetCutAction.Remove,
-            functionSelectors: _adminSelectors()
+            facetAddress: address(0), action: IDiamondCut.FacetCutAction.Remove, functionSelectors: _adminSelectors()
         });
         IDiamondCut(address(diamond)).diamondCut(removeCut, address(0), "");
 

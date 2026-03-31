@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import { LibDiamond } from "../libraries/LibDiamond.sol";
-import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
+import {LibDiamond} from "../libraries/LibDiamond.sol";
+import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DiamondCutFacet
@@ -11,18 +11,13 @@ import { IDiamondCut } from "../interfaces/IDiamondCut.sol";
 // ─────────────────────────────────────────────────────────────────────────────
 
 contract DiamondCutFacet is IDiamondCut {
-
-    function diamondCut(
-        FacetCut[] calldata _diamondCut,
-        address _init,
-        bytes calldata _calldata
-    ) external override {
+    function diamondCut(FacetCut[] calldata _diamondCut, address _init, bytes calldata _calldata) external override {
         LibDiamond.enforceIsContractOwner();
         LibDiamond.FacetCut[] memory cut = new LibDiamond.FacetCut[](_diamondCut.length);
         for (uint256 i; i < _diamondCut.length; i++) {
             cut[i] = LibDiamond.FacetCut({
-                facetAddress:      _diamondCut[i].facetAddress,
-                action:            LibDiamond.FacetCutAction(uint8(_diamondCut[i].action)),
+                facetAddress: _diamondCut[i].facetAddress,
+                action: LibDiamond.FacetCutAction(uint8(_diamondCut[i].action)),
                 functionSelectors: _diamondCut[i].functionSelectors
             });
         }

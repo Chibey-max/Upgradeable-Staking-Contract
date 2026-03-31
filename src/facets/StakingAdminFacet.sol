@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import { LibStaking } from "../libraries/LibStaking.sol";
+import {LibStaking} from "../libraries/LibStaking.sol";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // StakingAdminFacet
@@ -10,7 +10,6 @@ import { LibStaking } from "../libraries/LibStaking.sol";
 // ─────────────────────────────────────────────────────────────────────────────
 
 contract StakingAdminFacet {
-
     event RewardRateUpdated(uint256 indexed poolId, uint256 newRate);
     event PoolCreated(uint256 indexed poolId, uint256 lockDuration, uint256 rewardRate);
 
@@ -26,8 +25,8 @@ contract StakingAdminFacet {
         LibStaking.enforceIsOwner();
         LibStaking.StakingStorage storage ss = LibStaking.stakingStorage();
         uint256 poolId = ss.poolCount;
-        ss.poolsRewardRate[poolId]    = rewardRate;
-        ss.poolsLockDuration[poolId]  = lockDuration;
+        ss.poolsRewardRate[poolId] = rewardRate;
+        ss.poolsLockDuration[poolId] = lockDuration;
         ss.poolCount++;
         emit PoolCreated(poolId, lockDuration, rewardRate);
     }

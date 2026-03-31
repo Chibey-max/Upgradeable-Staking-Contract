@@ -3,97 +3,143 @@ pragma solidity ^0.8.28;
 
 import "forge-std/Script.sol";
 
-import { Diamond }            from "../src/Diamond.sol";
-import { DiamondCutFacet }    from "../src/facets/DiamondCutFacet.sol";
-import { DiamondLoupeFacet }  from "../src/facets/DiamondLoupeFacet.sol";
-import { DiamondInit }        from "../src/DiamondInit.sol";
-import { StakingFacet }       from "../src/facets/StakingFacet.sol";
-import { StakingViewFacet }   from "../src/facets/StakingViewFacet.sol";
-import { StakingAdminFacet }  from "../src/facets/StakingAdminFacet.sol";
-import { MockERC20 }          from "../src/tokens/MockERC20.sol";
-import { IDiamondCut }        from "../src/interfaces/IDiamondCut.sol";
-import { IDiamondLoupe }      from "../src/interfaces/IDiamondLoupe.sol";
+import {Diamond} from "../src/Diamond.sol";
+import {DiamondCutFacet} from "../src/facets/DiamondCutFacet.sol";
+import {DiamondLoupeFacet} from "../src/facets/DiamondLoupeFacet.sol";
+import {DiamondInit} from "../src/DiamondInit.sol";
+import {StakingFacet} from "../src/facets/StakingFacet.sol";
+import {StakingViewFacet} from "../src/facets/StakingViewFacet.sol";
+import {StakingAdminFacet} from "../src/facets/StakingAdminFacet.sol";
+import {MockERC20} from "../src/tokens/MockERC20.sol";
+import {IDiamondCut} from "../src/interfaces/IDiamondCut.sol";
+import {IDiamondLoupe} from "../src/interfaces/IDiamondLoupe.sol";
 
 contract DeployDiamond is Script {
+    // State vars shared across helpers — avoids packing everything into run()
+    MockERC20 stakeToken;
+    MockERC20 rewardToken;
+    MockERC20 receiptToken;
+    Diamond diamond;
+    DiamondCutFacet cutFacet;
+    DiamondLoupeFacet loupeFacet;
+    DiamondInit initHelper;
+    StakingFacet stakingFacet;
+    StakingViewFacet viewFacet;
+    StakingAdminFacet adminFacet;
 
     function run() external {
         uint256 deployerKey = vm.envUint("PRIVATE_KEY");
-        address deployer    = vm.addr(deployerKey);
-
         vm.startBroadcast(deployerKey);
 
-        // ── 1. Tokens ──────────────────────────────────────────────────────
-        MockERC20 stakeToken   = new MockERC20("Stake Token",   "STK", 18, 1_000_000e18);
-        MockERC20 rewardToken  = new MockERC20("Reward Token",  "RWD", 18, 0);
-        MockERC20 receiptToken = new MockERC20("Receipt Token", "RCT", 18, 0);
+        _deployTokens();
+        _deployCore();
+        _deployStakingFacets();
+        _grantMinterRights();
+        _cutDiamond();
 
+        console.log("--- Deployment complete ---");
+        console.log("Diamond     :", address(diamond));
         console.log("StakeToken  :", address(stakeToken));
         console.log("RewardToken :", address(rewardToken));
         console.log("ReceiptToken:", address(receiptToken));
 
-        // ── 2. Diamond core ────────────────────────────────────────────────
-        DiamondCutFacet   cutFacet   = new DiamondCutFacet();
-        DiamondLoupeFacet loupeFacet = new DiamondLoupeFacet();
-        DiamondInit       initHelper = new DiamondInit();
-        Diamond           diamond    = new Diamond(deployer, address(cutFacet));
+        vm.stopBroadcast();
+    }
 
+    function _deployTokens() internal {
+        stakeToken = new MockERC20("Stake Token", "STK", 18, 1_000_000e18);
+        rewardToken = new MockERC20("Reward Token", "RWD", 18, 0);
+        receiptToken = new MockERC20("Receipt Token", "RCT", 18, 0);
+        console.log("StakeToken  :", address(stakeToken));
+        console.log("RewardToken :", address(rewardToken));
+        console.log("ReceiptToken:", address(receiptToken));
+    }
+
+    function _deployCore() internal {
+        cutFacet = new DiamondCutFacet();
+        loupeFacet = new DiamondLoupeFacet();
+        initHelper = new DiamondInit();
+        diamond = new Diamond(msg.sender, address(cutFacet));
         console.log("DiamondCutFacet  :", address(cutFacet));
         console.log("DiamondLoupeFacet:", address(loupeFacet));
         console.log("Diamond          :", address(diamond));
+    }
 
-        // ── 3. Staking facets ──────────────────────────────────────────────
-        StakingFacet      stakingFacet = new StakingFacet();
-        StakingViewFacet  viewFacet    = new StakingViewFacet();
-        StakingAdminFacet adminFacet   = new StakingAdminFacet();
-
+    function _deployStakingFacets() internal {
+        stakingFacet = new StakingFacet();
+        viewFacet = new StakingViewFacet();
+        adminFacet = new StakingAdminFacet();
         console.log("StakingFacet     :", address(stakingFacet));
         console.log("StakingViewFacet :", address(viewFacet));
         console.log("StakingAdminFacet:", address(adminFacet));
+    }
 
-        // ── 4. Grant Diamond minter rights ──────────────────────────────────
+    function _grantMinterRights() internal {
         rewardToken.addMinter(address(diamond));
         receiptToken.addMinter(address(diamond));
+    }
 
-        // ── 5. One-shot diamondCut: attach all facets + run DiamondInit ─────
+    function _cutDiamond() internal {
         IDiamondCut.FacetCut[] memory cuts = new IDiamondCut.FacetCut[](4);
+        cuts[0] = IDiamondCut.FacetCut({
+            facetAddress: address(loupeFacet),
+            action: IDiamondCut.FacetCutAction.Add,
+            functionSelectors: _loupeSelectors()
+        });
+        cuts[1] = IDiamondCut.FacetCut({
+            facetAddress: address(stakingFacet),
+            action: IDiamondCut.FacetCutAction.Add,
+            functionSelectors: _stakingSelectors()
+        });
+        cuts[2] = IDiamondCut.FacetCut({
+            facetAddress: address(viewFacet),
+            action: IDiamondCut.FacetCutAction.Add,
+            functionSelectors: _viewSelectors()
+        });
+        cuts[3] = IDiamondCut.FacetCut({
+            facetAddress: address(adminFacet),
+            action: IDiamondCut.FacetCutAction.Add,
+            functionSelectors: _adminSelectors()
+        });
 
-        bytes4[] memory loupeSelectors = new bytes4[](4);
-        loupeSelectors[0] = IDiamondLoupe.facets.selector;
-        loupeSelectors[1] = IDiamondLoupe.facetFunctionSelectors.selector;
-        loupeSelectors[2] = IDiamondLoupe.facetAddresses.selector;
-        loupeSelectors[3] = IDiamondLoupe.facetAddress.selector;
+        bytes memory initCalldata =
+            abi.encodeCall(DiamondInit.init, (address(stakeToken), address(rewardToken), address(receiptToken)));
 
-        bytes4[] memory stakingSelectors = new bytes4[](4);
-        stakingSelectors[0] = StakingFacet.stake.selector;
-        stakingSelectors[1] = StakingFacet.withdraw.selector;
-        stakingSelectors[2] = StakingFacet.emergencyWithdraw.selector;
-        stakingSelectors[3] = StakingFacet.claimRewards.selector;
+        IDiamondCut(address(diamond)).diamondCut(cuts, address(initHelper), initCalldata);
+        console.log("diamondCut complete - 4 pools initialized");
+    }
 
-        bytes4[] memory viewSelectors = new bytes4[](6);
-        viewSelectors[0] = StakingViewFacet.getPoolTotalStaked.selector;
-        viewSelectors[1] = StakingViewFacet.getPendingReward.selector;
-        viewSelectors[2] = StakingViewFacet.getStake.selector;
-        viewSelectors[3] = StakingViewFacet.getStakeCount.selector;
-        viewSelectors[4] = StakingViewFacet.getPoolRewardRate.selector;
-        viewSelectors[5] = StakingViewFacet.getPoolCount.selector;
+    // ── Selector helpers ───────────────────────────────────────────────────
 
-        bytes4[] memory adminSelectors = new bytes4[](2);
-        adminSelectors[0] = StakingAdminFacet.updateRewardRate.selector;
-        adminSelectors[1] = StakingAdminFacet.createPool.selector;
+    function _loupeSelectors() internal pure returns (bytes4[] memory s) {
+        s = new bytes4[](4);
+        s[0] = IDiamondLoupe.facets.selector;
+        s[1] = IDiamondLoupe.facetFunctionSelectors.selector;
+        s[2] = IDiamondLoupe.facetAddresses.selector;
+        s[3] = IDiamondLoupe.facetAddress.selector;
+    }
 
-        cuts[0] = IDiamondCut.FacetCut({ facetAddress: address(loupeFacet),   action: IDiamondCut.FacetCutAction.Add, functionSelectors: loupeSelectors   });
-        cuts[1] = IDiamondCut.FacetCut({ facetAddress: address(stakingFacet), action: IDiamondCut.FacetCutAction.Add, functionSelectors: stakingSelectors });
-        cuts[2] = IDiamondCut.FacetCut({ facetAddress: address(viewFacet),    action: IDiamondCut.FacetCutAction.Add, functionSelectors: viewSelectors    });
-        cuts[3] = IDiamondCut.FacetCut({ facetAddress: address(adminFacet),   action: IDiamondCut.FacetCutAction.Add, functionSelectors: adminSelectors   });
+    function _stakingSelectors() internal pure returns (bytes4[] memory s) {
+        s = new bytes4[](4);
+        s[0] = StakingFacet.stake.selector;
+        s[1] = StakingFacet.withdraw.selector;
+        s[2] = StakingFacet.emergencyWithdraw.selector;
+        s[3] = StakingFacet.claimRewards.selector;
+    }
 
-        IDiamondCut(address(diamond)).diamondCut(
-            cuts,
-            address(initHelper),
-            abi.encodeCall(DiamondInit.init, (address(stakeToken), address(rewardToken), address(receiptToken)))
-        );
+    function _viewSelectors() internal pure returns (bytes4[] memory s) {
+        s = new bytes4[](6);
+        s[0] = StakingViewFacet.getPoolTotalStaked.selector;
+        s[1] = StakingViewFacet.getPendingReward.selector;
+        s[2] = StakingViewFacet.getStake.selector;
+        s[3] = StakingViewFacet.getStakeCount.selector;
+        s[4] = StakingViewFacet.getPoolRewardRate.selector;
+        s[5] = StakingViewFacet.getPoolCount.selector;
+    }
 
-        console.log("Diamond fully initialized. Pools: 4");
-
-        vm.stopBroadcast();
+    function _adminSelectors() internal pure returns (bytes4[] memory s) {
+        s = new bytes4[](2);
+        s[0] = StakingAdminFacet.updateRewardRate.selector;
+        s[1] = StakingAdminFacet.createPool.selector;
     }
 }

@@ -8,12 +8,11 @@ pragma solidity ^0.8.28;
 // ─────────────────────────────────────────────────────────────────────────────
 
 library LibDiamond {
-
     bytes32 constant DIAMOND_STORAGE_POSITION = keccak256("diamond.standard.diamond.storage");
 
     struct FacetAddressAndSelectorPosition {
         address facetAddress;
-        uint16  selectorPosition;
+        uint16 selectorPosition;
     }
 
     struct DiamondStorage {
@@ -55,21 +54,21 @@ library LibDiamond {
 
     // ── Cut actions ────────────────────────────────────────────────────────
 
-    enum FacetCutAction { Add, Replace, Remove }
+    enum FacetCutAction {
+        Add,
+        Replace,
+        Remove
+    }
 
     struct FacetCut {
-        address         facetAddress;
-        FacetCutAction  action;
-        bytes4[]        functionSelectors;
+        address facetAddress;
+        FacetCutAction action;
+        bytes4[] functionSelectors;
     }
 
     event DiamondCut(FacetCut[] _diamondCut, address _init, bytes _calldata);
 
-    function diamondCut(
-        FacetCut[] memory _diamondCut,
-        address _init,
-        bytes memory _calldata
-    ) internal {
+    function diamondCut(FacetCut[] memory _diamondCut, address _init, bytes memory _calldata) internal {
         for (uint256 facetIndex; facetIndex < _diamondCut.length; facetIndex++) {
             FacetCutAction action = _diamondCut[facetIndex].action;
             if (action == FacetCutAction.Add) {

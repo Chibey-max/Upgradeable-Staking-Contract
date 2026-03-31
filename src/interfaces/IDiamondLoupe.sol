@@ -3,7 +3,7 @@ pragma solidity ^0.8.28;
 
 interface IDiamondLoupe {
     struct Facet {
-        address  facetAddress;
+        address facetAddress;
         bytes4[] functionSelectors;
     }
 

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import { LibDiamond } from "./libraries/LibDiamond.sol";
-import { IDiamondCut } from "./interfaces/IDiamondCut.sol";
+import {LibDiamond} from "./libraries/LibDiamond.sol";
+import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Diamond
@@ -11,7 +11,6 @@ import { IDiamondCut } from "./interfaces/IDiamondCut.sol";
 // ─────────────────────────────────────────────────────────────────────────────
 
 contract Diamond {
-
     constructor(address _contractOwner, address _diamondCutFacet) payable {
         LibDiamond.setContractOwner(_contractOwner);
 
@@ -21,9 +20,7 @@ contract Diamond {
 
         LibDiamond.FacetCut[] memory cut = new LibDiamond.FacetCut[](1);
         cut[0] = LibDiamond.FacetCut({
-            facetAddress:      _diamondCutFacet,
-            action:            LibDiamond.FacetCutAction.Add,
-            functionSelectors: functionSelectors
+            facetAddress: _diamondCutFacet, action: LibDiamond.FacetCutAction.Add, functionSelectors: functionSelectors
         });
 
         LibDiamond.diamondCut(cut, address(0), "");

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import { LibDiamond } from "../libraries/LibDiamond.sol";
-import { IDiamondLoupe } from "../interfaces/IDiamondLoupe.sol";
+import {LibDiamond} from "../libraries/LibDiamond.sol";
+import {IDiamondLoupe} from "../interfaces/IDiamondLoupe.sol";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DiamondLoupeFacet
@@ -11,7 +11,6 @@ import { IDiamondLoupe } from "../interfaces/IDiamondLoupe.sol";
 // ─────────────────────────────────────────────────────────────────────────────
 
 contract DiamondLoupeFacet is IDiamondLoupe {
-
     function facets() external view override returns (Facet[] memory facets_) {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         uint256 numSelectors = ds.selectors.length;
@@ -82,9 +81,11 @@ contract DiamondLoupeFacet is IDiamondLoupe {
             address addr = ds.facetAddressAndSelectorPosition[ds.selectors[i]].facetAddress;
             bool found;
             for (uint256 j; j < count; j++) {
-                if (addresses_[j] == addr) { found = true; break; }
+                if (addresses_[j] == addr) found = true;
+                break;
             }
-            if (!found) { addresses_[count] = addr; count++; }
+            if (!found) addresses_[count] = addr;
+            count++;
         }
 
         assembly { mstore(addresses_, count) }

@@ -8,13 +8,12 @@ pragma solidity ^0.8.28;
 // ─────────────────────────────────────────────────────────────────────────────
 
 contract MockERC20 {
-
-    string  public name;
-    string  public symbol;
-    uint8   public decimals;
+    string public name;
+    string public symbol;
+    uint8 public decimals;
     uint256 public totalSupply;
 
-    mapping(address => uint256)                     public balanceOf;
+    mapping(address => uint256) public balanceOf;
     mapping(address => mapping(address => uint256)) public allowance;
 
     // Minter role — set to deployer; add the Diamond after init
@@ -26,10 +25,10 @@ contract MockERC20 {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
     constructor(string memory _name, string memory _symbol, uint8 _decimals, uint256 _initialSupply) {
-        name     = _name;
-        symbol   = _symbol;
+        name = _name;
+        symbol = _symbol;
         decimals = _decimals;
-        owner    = msg.sender;
+        owner = msg.sender;
         isMinter[msg.sender] = true;
         _mint(msg.sender, _initialSupply);
     }
@@ -69,7 +68,7 @@ contract MockERC20 {
         require(isMinter[msg.sender], "MockERC20: not minter");
         require(balanceOf[from] >= amount, "MockERC20: burn exceeds balance");
         balanceOf[from] -= amount;
-        totalSupply      -= amount;
+        totalSupply -= amount;
         emit Transfer(from, address(0), amount);
     }
 
@@ -83,15 +82,15 @@ contract MockERC20 {
     // ── Internal ───────────────────────────────────────────────────────────
 
     function _mint(address to, uint256 amount) internal {
-        totalSupply      += amount;
-        balanceOf[to]    += amount;
+        totalSupply += amount;
+        balanceOf[to] += amount;
         emit Transfer(address(0), to, amount);
     }
 
     function _transfer(address from, address to, uint256 amount) internal {
         require(balanceOf[from] >= amount, "ERC20: insufficient balance");
         balanceOf[from] -= amount;
-        balanceOf[to]   += amount;
+        balanceOf[to] += amount;
         emit Transfer(from, to, amount);
     }
 }

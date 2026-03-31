@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import { LibStaking } from "../libraries/LibStaking.sol";
+import {LibStaking} from "../libraries/LibStaking.sol";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // StakingViewFacetV2
@@ -14,7 +14,6 @@ import { LibStaking } from "../libraries/LibStaking.sol";
 // ─────────────────────────────────────────────────────────────────────────────
 
 contract StakingViewFacetV2 {
-
     /// @notice V2 — returns 0 for inactive stakes instead of stale accrued value
     function getPendingReward(uint256 poolId, uint256 stakeId) external view returns (uint256) {
         LibStaking.StakingStorage storage ss = LibStaking.stakingStorage();

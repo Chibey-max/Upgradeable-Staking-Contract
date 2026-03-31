@@ -9,7 +9,6 @@ pragma solidity ^0.8.28;
 // ─────────────────────────────────────────────────────────────────────────────
 
 library LibStaking {
-
     bytes32 constant STAKING_STORAGE_POSITION = keccak256("diamond.storage.staking");
 
     struct Stake {
@@ -19,7 +18,7 @@ library LibStaking {
         uint256 rewardRate;
         uint256 lastUpdateTime;
         uint256 rewardAccrued;
-        bool    active;
+        bool active;
     }
 
     struct StakingStorage {
@@ -30,13 +29,13 @@ library LibStaking {
 
         // Pool metadata
         uint256 poolCount;
-        mapping(uint256 poolId => uint256)          poolTotalStaked;
-        mapping(uint256 poolId => uint256)          poolsRewardRate;
-        mapping(uint256 poolId => uint256)          poolsLockDuration;
+        mapping(uint256 poolId => uint256) poolTotalStaked;
+        mapping(uint256 poolId => uint256) poolsRewardRate;
+        mapping(uint256 poolId => uint256) poolsLockDuration;
 
         // Per-user stake records
         mapping(uint256 poolId => mapping(address user => mapping(uint256 stakeId => Stake))) userStakes;
-        mapping(uint256 poolId => mapping(address user => uint256))                           stakeCount;
+        mapping(uint256 poolId => mapping(address user => uint256)) stakeCount;
 
         // Admin
         address owner;
@@ -51,11 +50,7 @@ library LibStaking {
 
     // ── Reward math ────────────────────────────────────────────────────────
 
-    function calculateReward(
-        uint256 poolId,
-        address user,
-        uint256 stakeId
-    ) internal view returns (uint256) {
+    function calculateReward(uint256 poolId, address user, uint256 stakeId) internal view returns (uint256) {
         Stake storage s = stakingStorage().userStakes[poolId][user][stakeId];
         if (s.amount == 0) return 0;
         uint256 timeElapsed = block.timestamp - s.lastUpdateTime;

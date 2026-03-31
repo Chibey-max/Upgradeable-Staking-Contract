@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import { LibStaking } from "./libraries/LibStaking.sol";
+import {LibStaking} from "./libraries/LibStaking.sol";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DiamondInit
@@ -15,31 +15,26 @@ import { LibStaking } from "./libraries/LibStaking.sol";
 // ─────────────────────────────────────────────────────────────────────────────
 
 contract DiamondInit {
-
-    function init(
-        address stakeToken,
-        address rewardToken,
-        address receiptToken
-    ) external {
+    function init(address stakeToken, address rewardToken, address receiptToken) external {
         LibStaking.StakingStorage storage ss = LibStaking.stakingStorage();
 
         require(ss.poolCount == 0, "DiamondInit: already initialized");
 
-        ss.stakeToken   = stakeToken;
-        ss.rewardToken  = rewardToken;
+        ss.stakeToken = stakeToken;
+        ss.rewardToken = rewardToken;
         ss.receiptToken = receiptToken;
-        ss.owner        = msg.sender; // msg.sender is the Diamond (via delegatecall)
+        ss.owner = msg.sender; // msg.sender is the Diamond (via delegatecall)
 
         // Mirror the four pools from the original DefiStaking constructor
-        _createPool(ss, 300,   3170979198);   // 5 min
-        _createPool(ss, 600,   7927447995);   // 10 min
-        _createPool(ss, 3600,  15854895991);  // 1 hour
-        _createPool(ss, 86400, 31709791983);  // 1 day
+        _createPool(ss, 300, 3170979198); // 5 min
+        _createPool(ss, 600, 7927447995); // 10 min
+        _createPool(ss, 3600, 15854895991); // 1 hour
+        _createPool(ss, 86400, 31709791983); // 1 day
     }
 
     function _createPool(LibStaking.StakingStorage storage ss, uint256 lockDuration, uint256 rewardRate) private {
         uint256 poolId = ss.poolCount;
-        ss.poolsRewardRate[poolId]   = rewardRate;
+        ss.poolsRewardRate[poolId] = rewardRate;
         ss.poolsLockDuration[poolId] = lockDuration;
         ss.poolCount++;
     }
