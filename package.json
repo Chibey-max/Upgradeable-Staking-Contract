@@ -1,0 +1,29 @@
+{
+  "name": "diamond-staking",
+  "version": "1.0.0",
+  "description": "Your `DefiStaking.sol` contract refactored as an upgradeable Diamond (EIP-2535).",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chibey-max/Upgradeable-Staking-Contract.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Chibey-max/Upgradeable-Staking-Contract/issues"
+  },
+  "homepage": "https://github.com/Chibey-max/Upgradeable-Staking-Contract#readme",
+  "dependencies": {
+    "@ethersproject/keccak256": "^5.8.0",
+    "@ethersproject/strings": "^5.8.0"
+  }
+}

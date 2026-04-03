@@ -3,11 +3,6 @@ pragma solidity ^0.8.28;
 
 import {LibStaking} from "../libraries/LibStaking.sol";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// StakingViewFacet  (V1)
-// Pure read-only queries. Separated from StakingFacet so it can be upgraded
-// independently via a diamondCut Replace without touching write logic.
-// ─────────────────────────────────────────────────────────────────────────────
 
 contract StakingViewFacet {
     function getPoolTotalStaked(uint256 poolId) external view returns (uint256) {
